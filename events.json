@@ -1,28 +1,44 @@
 {
   "events": [
     {
-      "date": "2026-01-10",
+      "date": "2026-01-16",
       "time": "19:30",
-      "title": "Culto Jovem",
+      "title": "GP e Reunião com os Líderes",
       "location": "CBO",
-      "type": "Encontro",
-      "notes": "Chegar 19:00 • levar 1 amigo."
+      "type": "SEXTA",
+      "notes": "Teremos o GP breve e depois a reunião"
     },
     {
-      "date": "2026-01-17",
-      "time": "15:00",
-      "title": "Ação Social",
-      "location": "Praça central",
-      "type": "Serviço",
-      "notes": "Coletar alimentos e roupas."
+      "date": "2026-01-24",
+      "time": "19:30",
+      "title": "Luau",
+      "location": "Praia de Piratininga",
+      "type": "SÁBADO",
+      "notes": "Na direção do Quiosque do Santana"
     },
     {
       "date": "2026-02-07",
-      "time": "09:00",
-      "title": "Manhã de comunhão",
+      "time": "14:00",
+      "title": "Tarde de Jogos",
       "location": "CBO",
-      "type": "Comunhão",
-      "notes": "Café compartilhado."
+      "type": "SÁBADO",
+      "notes": "Levem seus boardgames"
+    {
+      "date": "2026-01-20",
+      "time": "19:30",
+      "title": "Connect",
+      "location": "CBO",
+      "type": "SEXTA",
+      "notes": "Culto dos Adolescentes"
+    },
+    {
+      "date": "2026-02-21",
+      "time": "19:00",
+      "title": "Culto Jovem",
+      "location": "CBO",
+      "type": "SÁBADO",
+      "notes": "Culto para jovens e adolescentes"
+      
     }
   ]
 }
