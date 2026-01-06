@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agenda Jovens CBO</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="brand">
+        <div class="logo">CBO</div>
+        <div>
+          <h1>Agenda dos Jovens</h1>
+          <p class="subtitle">Comunidade Batista Oceânica • Eventos do ano</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <input id="search" type="search" placeholder="Buscar evento, local, palavra..." />
+        <select id="monthFilter">
+          <option value="all">Todos os meses</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="monthsGrid" class="months-grid" aria-live="polite"></div>
+    <footer class="footer">
+      <p>Atualizado automaticamente quando você edita <code>events.json</code>.</p>
+    </footer>
+  </main>
+
+  <script>
+    const monthNames = [
+      "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+      "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+    ];
+
+    const elGrid = document.getElementById("monthsGrid");
+    const elSearch = document.getElementById("search");
+    const elMonthFilter = document.getElementById("monthFilter");
+
+    function toDateKey(iso) { return iso; } // "2026-01-12"
+    function formatBR(iso) {
+      const [y,m,d] = iso.split("-").map(Number);
+      return `${String(d).padStart(2,"0")}/${String(m).padStart(2,"0")}/${y}`;
+    }
+
+    function groupByMonth(events) {
+      const byMonth = new Map(); // monthIndex -> events[]
+      for (const e of events) {
+        const m = new Date(e.date + "T00:00:00").getMonth();
+        if (!byMonth.has(m)) byMonth.set(m, []);
+        byMonth.get(m).push(e);
+      }
+      // sort events inside each month by date/time
+      for (const [m, arr] of byMonth) {
+        arr.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+      }
+      return byMonth;
+    }
+
+    function buildMonthOptions() {
+      for (let i=0;i<12;i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = monthNames[i];
+        elMonthFilter.appendChild(opt);
+      }
+    }
+
+    function render(events) {
+      const q = elSearch.value.trim().toLowerCase();
+      const monthChoice = elMonthFilter.value;
+
+      const filtered = events.filter(e => {
+        const text = `${e.title} ${e.location ?? ""} ${e.notes ?? ""}`.toLowerCase();
+        const matchesSearch = !q || text.includes(q) || e.date.includes(q);
+        const matchesMonth = (monthChoice === "all") || (String(new Date(e.date+"T00:00:00").getMonth()) === monthChoice);
+        return matchesSearch && matchesMonth;
+      });
+
+      const byMonth = groupByMonth(filtered);
+
+      elGrid.innerHTML = "";
+
+      // render all months (or just selected month) with empty-state
+      const monthsToRender = monthChoice === "all"
+        ? [...Array(12).keys()]
+        : [Number(monthChoice)];
+
+      for (const m of monthsToRender) {
+        const monthEvents = byMonth.get(m) ?? [];
+        const card = document.createElement("section");
+        card.className = "month-card";
+
+        const header = document.createElement("div");
+        header.className = "month-header";
+
+        const h2 = document.createElement("h2");
+        h2.textContent = monthNames[m];
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = `${monthEvents.length} evento(s)`;
+
+        header.appendChild(h2);
+        header.appendChild(badge);
+
+        const list = document.createElement("div");
+        list.className = "events";
+
+        if (monthEvents.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "Sem eventos (por enquanto).";
+          list.appendChild(empty);
+        } else {
+          // group by day
+          const byDay = new Map(); // date -> events[]
+          for (const e of monthEvents) {
+            const k = toDateKey(e.date);
+            if (!byDay.has(k)) byDay.set(k, []);
+            byDay.get(k).push(e);
+          }
+          for (const [day, arr] of byDay) {
+            const dayBlock = document.createElement("div");
+            dayBlock.className = "day-block";
+
+            const dayTitle = document.createElement("div");
+            dayTitle.className = "day-title";
+            dayTitle.innerHTML = `<span>${formatBR(day)}</span><span class="day-count">${arr.length}</span>`;
+
+            const sub = document.createElement("div");
+            sub.className = "subcards";
+
+            for (const e of arr) {
+              const subcard = document.createElement("article");
+              subcard.className = "event-card";
+
+              subcard.innerHTML = `
+                <div class="event-top">
+                  <div class="event-title">${e.title}</div>
+                  <div class="event-time">${e.time ?? ""}</div>
+                </div>
+                <div class="event-meta">
+                  ${e.location ? `<span class="pill">📍 ${e.location}</span>` : ""}
+                  ${e.type ? `<span class="pill">🏷️ ${e.type}</span>` : ""}
+                </div>
+                ${e.notes ? `<div class="event-notes">${e.notes}</div>` : ""}
+              `;
+              sub.appendChild(subcard);
+            }
+
+            dayBlock.appendChild(dayTitle);
+            dayBlock.appendChild(sub);
+            list.appendChild(dayBlock);
+          }
+        }
+
+        card.appendChild(header);
+        card.appendChild(list);
+        elGrid.appendChild(card);
+      }
+    }
+
+    async function init() {
+      buildMonthOptions();
+      const res = await fetch("events.json", { cache: "no-store" });
+      const data = await res.json();
+
+      elSearch.addEventListener("input", () => render(data.events));
+      elMonthFilter.addEventListener("change", () => render(data.events));
+
+      render(data.events);
+    }
+
+    init().catch(err => {
+      elGrid.innerHTML = `<div class="error">Não consegui carregar a agenda. Verifique o arquivo <code>events.json</code>.</div>`;
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
