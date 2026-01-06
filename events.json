@@ -1,0 +1,28 @@
+{
+  "events": [
+    {
+      "date": "2026-01-10",
+      "time": "19:30",
+      "title": "Culto Jovem",
+      "location": "CBO",
+      "type": "Encontro",
+      "notes": "Chegar 19:00 • levar 1 amigo."
+    },
+    {
+      "date": "2026-01-17",
+      "time": "15:00",
+      "title": "Ação Social",
+      "location": "Praça central",
+      "type": "Serviço",
+      "notes": "Coletar alimentos e roupas."
+    },
+    {
+      "date": "2026-02-07",
+      "time": "09:00",
+      "title": "Manhã de comunhão",
+      "location": "CBO",
+      "type": "Comunhão",
+      "notes": "Café compartilhado."
+    }
+  ]
+}
