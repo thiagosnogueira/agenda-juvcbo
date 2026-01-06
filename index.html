@@ -9,25 +9,30 @@
 </head>
 <body>
   <header class="header">
-    <div class="container">
-      <div class="brand">
-        <div class="logo">
-  <img src="logo-juvcbo.jpg" alt="Logo CBO" />
-  </div>
-        <div>
-          <h1></h1>
-          <p class="subtitle"></p>
-        </div>
-      </div>
+  <div class="container">
 
-      <div class="controls">
-        <input id="search" type="search" placeholder="Buscar evento, local, palavra..." />
-        <select id="monthFilter">
-          <option value="all">Todos os meses</option>
-        </select>
+    <!-- LOGO EM CIMA -->
+    <div class="brand" style="margin-bottom: 16px;">
+      <div class="logo">
+        <img src="logo-juvcbo.jpg" alt="Logo CBO" />
       </div>
     </div>
-  </header>
+
+    <!-- BUSCA E FILTRO EMBAIXO -->
+    <div class="controls">
+      <input
+        id="search"
+        type="search"
+        placeholder="Buscar evento, local, palavra..."
+      />
+      <select id="monthFilter">
+        <option value="all">Todos os meses</option>
+      </select>
+    </div>
+
+  </div>
+</header>
+
 
   <main class="container">
     <div id="monthsGrid" class="months-grid" aria-live="polite"></div>
