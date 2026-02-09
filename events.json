@@ -1,45 +1,30 @@
 {
+  "updatedAt": "09/02/2026",
   "events": [
     {
-      "date": "2026-01-16",
-      "time": "19:30",
-      "title": "GP e Reunião com os Líderes",
-      "location": "CBO",
-      "type": "SEXTA",
-      "notes": "Teremos o GP breve e depois a reunião"
+      "title": "Culto de Jovens",
+      "type": "Encontro",
+      "datetime": "2026-02-14T19:30",
+      "location": "CBO — Salão Principal",
+      "description": "Louvor, palavra e comunhão. Chegue 10 min antes :)",
+      "durationMinutes": 120,
+      "link": "https://instagram.com/"
     },
     {
-      "date": "2026-01-24",
-      "time": "19:30",
-      "title": "Luau",
-      "location": "Praia de Piratininga",
-      "type": "SÁBADO",
-      "notes": "Na direção do Quiosque do Santana"
+      "title": "Pequeno Grupo",
+      "type": "PG",
+      "datetime": "2026-02-18T20:00",
+      "location": "Casa do irmão João",
+      "description": "Tema: oração e vida devocional.",
+      "durationMinutes": 90
     },
     {
-      "date": "2026-02-07",
-      "time": "14:00",
-      "title": "Tarde de Jogos",
-      "location": "CBO",
-      "type": "SÁBADO",
-      "notes": "Levem seus boardgames"
-    },
-    {
-      "date": "2026-01-20",
-      "time": "19:30",
-      "title": "Connect",
-      "location": "CBO",
-      "type": "SEXTA",
-      "notes": "Culto dos Adolescentes"
-    },
-    {
-      "date": "2026-02-21",
-      "time": "19:00",
-      "title": "Culto Jovem",
-      "location": "CBO",
-      "type": "SÁBADO",
-      "notes": "Culto para jovens e adolescentes"
-      
+      "title": "Ação Evangelística",
+      "type": "Ação",
+      "datetime": "2026-02-22T16:00",
+      "location": "Praça central",
+      "description": "Levar água, sorriso e o amor de Cristo.",
+      "durationMinutes": 150
     }
   ]
 }
