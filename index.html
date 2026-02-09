@@ -237,11 +237,6 @@
         : "Somente próximos eventos";
     }
 
-    togglePastBtn.addEventListener("click", function () {
-      showPast = !showPast;
-      togglePastBtn.textContent = showPast ? "Ocultar passados" : "Mostrar passados";
-      applyFilters();
-    });
 
     searchInput.addEventListener("input", applyFilters);
 
