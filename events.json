@@ -85,6 +85,142 @@
       "location": "Sítio da PIB de NIterói",
       "description": "Mais detalhes em breve",
       "durationMinutes": 150
+    },
+    {
+      "title": "Tarde de Jogos",
+      "type": "Comunhão",
+      "datetime": "2026-06-20T14:00",
+      "location": "CBO",
+      "description": "Leve boardgames e cardgames",
+      "durationMinutes": 150
+    },
+    {
+      "title": "JUBAN - Festa na Roça",
+      "type": "Festa",
+      "datetime": "2026-06-27T19:00",
+      "location": "Indefinido",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "Culto dos Adolescentes",
+      "type": "Culto",
+      "datetime": "2026-07-17T19:30",
+      "location": "CBO - No salão vermelho",
+      "description": "Leve o máximo de visitantes que conseguir",
+      "durationMinutes": 150
+    },
+    {
+      "title": "Culto Jovem",
+      "type": "Culto",
+      "datetime": "2026-07-18T19:00",
+      "location": "CBO",
+      "description": "Culto de adoração e crescimento. Leve o máximo de visitantes que conseguir",
+      "durationMinutes": 150
+    },
+    {
+      "title": "JUBAN - Festival de Rock",
+      "type": "Culto",
+      "datetime": "2026-07-25T19:00",
+      "location": "Indefinido",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "CONGRESSO",
+      "type": "Culto",
+      "datetime": "2026-08-14T19:30",
+      "location": "CBO",
+      "description": "Dias 14, 15 e 16 de agosto",
+      "durationMinutes": 150
+    },
+    {
+      "title": "Retiro: REPENSE",
+      "type": "Retiro",
+      "datetime": "2026-09-07T07:00",
+      "location": "Sítio com a IB da Orla",
+      "description": "Dias 4 até 7 de setembro",
+      "durationMinutes": 150
+    },
+    {
+      "title": "Culto dos Adolescentes",
+      "type": "Culto",
+      "datetime": "2026-09-18T19:30",
+      "location": "CBO - No salão vermelho",
+      "description": "Leve o máximo de visitantes que conseguir",
+      "durationMinutes": 150
+    },
+    {
+      "title": "Culto Jovem",
+      "type": "Culto",
+      "datetime": "2026-09-19T19:00",
+      "location": "CBO",
+      "description": "Culto de adoração e crescimento. Leve o máximo de visitantes que conseguir",
+      "durationMinutes": 150
+    },
+    {
+      "title": "JUBAN - Campeonato de Futsal masculino",
+      "type": "Esporte",
+      "datetime": "2026-09-26T07:00",
+      "location": "Indefinido",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "Tarde de Jogos",
+      "type": "Comunhão",
+      "datetime": "2026-10-17T14:00",
+      "location": "CBO",
+      "description": "Traga seus boardgames",
+      "durationMinutes": 150
+    },
+    {
+      "title": "JUBAN - Encontrão",
+      "type": "Culto",
+      "datetime": "2026-10-31T19:00",
+      "location": "Indefinido",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "GINCANA",
+      "type": "Comunhão",
+      "datetime": "2026-11-01T00:00",
+      "location": "CBO",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "ACAMPADENTRO",
+      "type": "Comunhão",
+      "datetime": "2026-11-01T07:00",
+      "location": "CBO",
+      "description": "Será em Novembro. A data exata ainda será definida",
+      "durationMinutes": 150
+    },
+    {
+      "title": "JUBAN - Celebra Juban",
+      "type": "Culto",
+      "datetime": "2026-11-28T19:00",
+      "location": "Indefinido",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "Jogos de encerramento da Gincana",
+      "type": "Comunhão",
+      "datetime": "2026-12-05T10:00",
+      "location": "CBO",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "Noite de encerramento",
+      "type": "Culto",
+      "datetime": "2026-12-19T19:00",
+      "location": "CBO",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
     }
   ]
 }
