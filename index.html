@@ -16,35 +16,36 @@
       <div class="logo" aria-hidden="true">✦</div>
       <div class="brand-text">
         <h1>Agenda do Grupo de Jovens</h1>
-        <p id="subtitle">Próximos encontros e eventos</p>
+        <p id="subtitle">Por mês • encontros e eventos</p>
       </div>
     </div>
 
     <div class="controls">
       <label class="search">
         <span class="sr-only">Buscar</span>
-        <input id="searchInput" type="search" placeholder="Buscar por título, local..." />
+        <input id="searchInput" type="search" placeholder="Buscar por título, local, tipo..." />
       </label>
 
-      <button id="togglePastBtn" class="btn" type="button">
-        Mostrar passados
-      </button>
+      <button id="togglePastBtn" class="btn" type="button">Mostrar passados</button>
     </div>
   </header>
 
-  <main class="container">
+  ̶<main class="container">
     <section class="card">
       <div class="card-head">
-        <h2>Próximos eventos</h2>
+        <div>
+          <h2>Agenda</h2>
+          <p class="muted" id="updatedAt">Carregando…</p>
+        </div>
         <div class="meta">
           <span id="countBadge" class="badge">—</span>
-          <span id="updatedAt" class="muted">Carregando…</span>
         </div>
       </div>
 
       <div id="status" class="status muted">Carregando agenda…</div>
 
-      <div id="events" class="events" aria-live="polite"></div>
+      <!-- Aqui entram os cards por mês -->
+      <div id="months" class="months" aria-live="polite"></div>
 
       <div class="footer-note muted">
         Dica: para editar a agenda, altere apenas o arquivo <code>events.json</code>.
@@ -55,13 +56,13 @@
   <footer class="container footer muted">
     <span>© <span id="year"></span> • Grupo de Jovens</span>
     <span class="dot">•</span>
-    <span>Feito para ser simples, bonito e fácil de manter</span>
+    <span>Agenda simples e moderna</span>
   </footer>
 
   <script>
-    const $ = (sel) => document.querySelector(sel);
+    const $ = (s) => document.querySelector(s);
 
-    const eventsEl = $("#events");
+    const monthsEl = $("#months");
     const statusEl = $("#status");
     const searchInput = $("#searchInput");
     const togglePastBtn = $("#togglePastBtn");
@@ -74,37 +75,44 @@
     let allEvents = [];
     let showPast = false;
 
+    const MONTHS_PT = [
+      "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+      "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+    ];
+    const WEEKDAY_PT = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
     function parseLocalDateTime(isoLocal) {
-      // Espera "YYYY-MM-DDTHH:mm" (sem timezone)
-      // Interpreta no fuso local do navegador (ex.: Brasil)
+      // "YYYY-MM-DDTHH:mm"
       const [datePart, timePart = "00:00"] = isoLocal.split("T");
       const [y, m, d] = datePart.split("-").map(Number);
       const [hh, mm] = timePart.split(":").map(Number);
       return new Date(y, m - 1, d, hh, mm, 0, 0);
     }
 
-    function formatDateTime(dt) {
-      const date = dt.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
-      const time = dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-      return { date, time };
+    function normalize(str) {
+      return (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
     function isPast(dt) {
       return dt.getTime() < Date.now();
     }
 
-    function normalize(str) {
-      return (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    function pad2(n) { return String(n).padStart(2, "0"); }
+
+    function monthKey(dt) {
+      return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}`;
+    }
+
+    function monthTitle(dt) {
+      return `${MONTHS_PT[dt.getMonth()]} ${dt.getFullYear()}`;
     }
 
     function buildGoogleCalendarLink(ev, dtStart) {
-      // Evento simples: 90 min padrão (pode trocar no JSON se quiser)
       const durationMinutes = ev.durationMinutes ?? 90;
       const dtEnd = new Date(dtStart.getTime() + durationMinutes * 60000);
 
-      const pad = (n) => String(n).padStart(2, "0");
       const toGCal = (d) =>
-        `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+        `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}T${pad2(d.getHours())}${pad2(d.getMinutes())}00`;
 
       const params = new URLSearchParams({
         action: "TEMPLATE",
@@ -117,63 +125,110 @@
       return `https://calendar.google.com/calendar/render?${params.toString()}`;
     }
 
-    function render(events) {
-      eventsEl.innerHTML = "";
+    function icon(name) {
+      // inline SVG simples (sem libs)
+      const icons = {
+        calendar: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v2h18V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm14 8H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10zm-4 4h-5v5h5v-5z"/></svg>`,
+        clock: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1a11 11 0 1 0 .001 22.001A11 11 0 0 0 12 1zm1 11.414 4.293 4.293-1.414 1.414L11 13V6h2v6.414z"/></svg>`,
+        pin: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>`,
+        info: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 17h2v-6h-2v6zm0-8h2V7h-2v2zm1-7C6.935 2 3 5.935 3 11s3.935 9 9 9 9-3.935 9-9-3.935-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"/></svg>`
+      };
+      return icons[name] || "";
+    }
 
-      if (!events.length) {
-        statusEl.textContent = "Nenhum evento encontrado.";
-        statusEl.classList.remove("hidden");
-        countBadge.textContent = "0";
-        subtitle.textContent = showPast ? "Eventos (incluindo passados)" : "Próximos encontros e eventos";
-        return;
-      }
+    function buildMonthCard(title, events) {
+      const card = document.createElement("section");
+      card.className = "month-card";
 
-      statusEl.classList.add("hidden");
-      countBadge.textContent = String(events.length);
-      subtitle.textContent = showPast ? "Eventos (incluindo passados)" : "Próximos encontros e eventos";
+      const head = document.createElement("div");
+      head.className = "month-head";
+      head.innerHTML = `
+        <div class="month-title">${title}</div>
+        <div class="month-count">${events.length} evento(s)</div>
+      `;
+
+      const list = document.createElement("div");
+      list.className = "month-events";
 
       for (const ev of events) {
-        const dt = parseLocalDateTime(ev.datetime);
-        const { date, time } = formatDateTime(dt);
-        const past = isPast(dt);
+        const dt = ev._dt;
+        const weekday = WEEKDAY_PT[dt.getDay()];
+        const day = pad2(dt.getDate());
+        const time = `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
 
-        const tag = (ev.type || "Encontro").trim();
+        const past = isPast(dt);
         const gcal = buildGoogleCalendarLink(ev, dt);
 
-        const el = document.createElement("article");
-        el.className = "event" + (past ? " is-past" : "");
+        const item = document.createElement("article");
+        item.className = "event-row" + (past ? " is-past" : "");
 
-        el.innerHTML = `
-          <div class="event-left">
-            <div class="pill">${tag}</div>
-            <h3 class="event-title">${ev.title || "Sem título"}</h3>
-            <div class="event-sub">
-              <span class="kv">
-                <span class="k">📅</span>
-                <span class="v">${date}</span>
-              </span>
-              <span class="kv">
-                <span class="k">⏰</span>
-                <span class="v">${time}</span>
-              </span>
-              ${ev.location ? `
-              <span class="kv">
-                <span class="k">📍</span>
-                <span class="v">${ev.location}</span>
-              </span>` : ""}
+        item.innerHTML = `
+          <div class="event-date">
+            <div class="event-day">${day}</div>
+            <div class="event-weekday">${weekday}</div>
+          </div>
+
+          <div class="event-main">
+            <div class="event-top">
+              <span class="pill">${(ev.type || "Evento").trim()}</span>
+              <h3 class="event-title">${ev.title || "Sem título"}</h3>
+            </div>
+
+            <div class="event-meta">
+              <span class="meta-chip">${icon("calendar")} <span>${weekday}, ${day}</span></span>
+              <span class="meta-chip">${icon("clock")} <span>${time}</span></span>
+              ${ev.location ? `<span class="meta-chip">${icon("pin")} <span>${ev.location}</span></span>` : ""}
+              ${ev.description ? `<span class="meta-chip">${icon("info")} <span>Detalhes</span></span>` : ""}
             </div>
 
             ${ev.description ? `<p class="event-desc">${ev.description}</p>` : ""}
           </div>
 
           <div class="event-actions">
-            ${ev.link ? `<a class="btn btn-ghost" href="${ev.link}" target="_blank" rel="noopener">Detalhes</a>` : ""}
+            ${ev.link ? `<a class="btn btn-ghost" href="${ev.link}" target="_blank" rel="noopener">Mais detalhes</a>` : ""}
             <a class="btn" href="${gcal}" target="_blank" rel="noopener">Adicionar ao Google Agenda</a>
           </div>
         `;
 
-        eventsEl.appendChild(el);
+        list.appendChild(item);
       }
+
+      card.appendChild(head);
+      card.appendChild(list);
+      return card;
+    }
+
+    function renderByMonth(list) {
+      monthsEl.innerHTML = "";
+
+      if (!list.length) {
+        statusEl.textContent = "Nenhum evento encontrado.";
+        statusEl.classList.remove("hidden");
+        countBadge.textContent = "0";
+        return;
+      }
+
+      statusEl.classList.add("hidden");
+      countBadge.textContent = String(list.length);
+
+      // agrupa por mês
+      const groups = new Map();
+      for (const ev of list) {
+        const key = monthKey(ev._dt);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(ev);
+      }
+
+      // ordena grupos por chave (YYYY-MM)
+      const sortedKeys = Array.from(groups.keys()).sort();
+
+      for (const key of sortedKeys) {
+        const evs = groups.get(key).sort((a,b) => a._dt - b._dt);
+        const title = monthTitle(evs[0]._dt);
+        monthsEl.appendChild(buildMonthCard(title, evs));
+      }
+
+      subtitle.textContent = showPast ? "Por mês • incluindo passados" : "Por mês • próximos encontros e eventos";
     }
 
     function applyFilters() {
@@ -182,8 +237,8 @@
 
       let list = allEvents
         .map(ev => ({ ...ev, _dt: parseLocalDateTime(ev.datetime) }))
-        .filter(ev => showPast ? true : ev._dt.getTime() >= now - 60000) // tolerância 1 min
-        .sort((a, b) => a._dt - b._dt);
+        .filter(ev => showPast ? true : ev._dt.getTime() >= now - 60000)
+        .sort((a,b) => a._dt - b._dt);
 
       if (q) {
         list = list.filter(ev => {
@@ -192,7 +247,7 @@
         });
       }
 
-      render(list);
+      renderByMonth(list);
     }
 
     async function load() {
@@ -206,9 +261,7 @@
         const data = await res.json();
         allEvents = Array.isArray(data.events) ? data.events : [];
 
-        updatedAt.textContent = data.updatedAt
-          ? `Atualizado em ${data.updatedAt}`
-          : "Atualização não informada";
+        updatedAt.textContent = data.updatedAt ? `Atualizado em ${data.updatedAt}` : "Atualização não informada";
 
         applyFilters();
       } catch (err) {
