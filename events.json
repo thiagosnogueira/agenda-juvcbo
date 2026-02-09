@@ -131,7 +131,23 @@
       "type": "Culto",
       "datetime": "2026-08-14T19:30",
       "location": "CBO",
-      "description": "Dias 14, 15 e 16 de agosto",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "CONGRESSO",
+      "type": "Culto",
+      "datetime": "2026-08-15T19:30",
+      "location": "CBO",
+      "description": "Detalhes em breve",
+      "durationMinutes": 150
+    },
+    {
+      "title": "CONGRESSO",
+      "type": "Culto",
+      "datetime": "2026-08-16T19:30",
+      "location": "CBO",
+      "description": "Domingo de manhã e a noite",
       "durationMinutes": 150
     },
     {
