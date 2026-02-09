@@ -59,18 +59,27 @@ body{
 }
 
 .logo{
-  width:44px;
-  height:44px;
-  border-radius:14px;
+  height: 96px;        /* 🔥 tamanho da logo */
+  width: 260px;        /* 🔥 como é logo horizontal, precisa de largura */
+  border-radius: 16px;
 
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
 
-  background: transparent; /* ✅ remove o quadrado azul */
-  box-shadow: none;        /* ✅ remove sombra do quadrado */
-  overflow: hidden;        /* ✅ garante que nada "vaze" */
-  flex: 0 0 auto;          /* ✅ não deixa esticar */
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;   /* ✅ deixa a logo “respirar” */
+  flex: 0 0 auto;
+}
+
+/* MUITO IMPORTANTE: você não tem .logo img no seu CSS atual */
+.logo img{
+  height: 100%;
+  width: 100%;
+  object-fit: contain;  /* ✅ mostra inteiro */
+  display:block;
+         /* ✅ não deixa esticar */
 }
 
 .brand-text h1{
@@ -442,8 +451,9 @@ body{
 
 /* MOBILE */
 @media (max-width: 820px){
-  .brand{
-    gap: 14px;
+  .logo{
+    height: 70px;
+    width: 200px;
   }
 
   .brand-logo{
