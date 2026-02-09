@@ -1,9 +1,10 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agenda | Grupo de Jovens</title>
+
   <meta name="description" content="Agenda oficial do Grupo de Jovens" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -13,265 +14,252 @@
 
   <header class="container header">
     <div class="brand">
-      <div class="logo" aria-hidden="true">✦</div>
+      <div class="logo">✦</div>
       <div class="brand-text">
         <h1>Agenda do Grupo de Jovens</h1>
-        <p id="subtitle">Por mês • encontros e eventos</p>
+        <p id="subtitle">Encontros organizados por mês</p>
       </div>
     </div>
 
     <div class="controls">
-      <label class="search">
-        <span class="sr-only">Buscar</span>
-        <input id="searchInput" type="search" placeholder="Buscar por título, local, tipo..." />
-      </label>
+      <input
+        id="searchInput"
+        class="search"
+        type="search"
+        placeholder="Buscar por título, local ou tipo..."
+      />
 
-      <button id="togglePastBtn" class="btn" type="button">Mostrar passados</button>
+      <button id="togglePastBtn" class="btn">
+        Mostrar passados
+      </button>
     </div>
   </header>
 
-  ̶<main class="container">
+  <main class="container">
     <section class="card">
       <div class="card-head">
         <div>
           <h2>Agenda</h2>
-          <p class="muted" id="updatedAt">Carregando…</p>
+          <p id="updatedAt" class="muted">Carregando…</p>
         </div>
-        <div class="meta">
-          <span id="countBadge" class="badge">—</span>
-        </div>
+        <span id="countBadge" class="badge">—</span>
       </div>
 
-      <div id="status" class="status muted">Carregando agenda…</div>
+      <p id="status" class="status muted">Carregando agenda…</p>
 
-      <!-- Aqui entram os cards por mês -->
-      <div id="months" class="months" aria-live="polite"></div>
+      <div id="months" class="months"></div>
 
-      <div class="footer-note muted">
-        Dica: para editar a agenda, altere apenas o arquivo <code>events.json</code>.
-      </div>
+      <p class="footer-note muted">
+        Dica: edite apenas o arquivo <code>events.json</code> para atualizar a agenda.
+      </p>
     </section>
   </main>
 
   <footer class="container footer muted">
-    <span>© <span id="year"></span> • Grupo de Jovens</span>
-    <span class="dot">•</span>
-    <span>Agenda simples e moderna</span>
+    © <span id="year"></span> • Grupo de Jovens
   </footer>
 
   <script>
-    const $ = (s) => document.querySelector(s);
+    const monthsEl = document.getElementById("months");
+    const statusEl = document.getElementById("status");
+    const searchInput = document.getElementById("searchInput");
+    const togglePastBtn = document.getElementById("togglePastBtn");
+    const countBadge = document.getElementById("countBadge");
+    const updatedAtEl = document.getElementById("updatedAt");
+    const subtitleEl = document.getElementById("subtitle");
 
-    const monthsEl = $("#months");
-    const statusEl = $("#status");
-    const searchInput = $("#searchInput");
-    const togglePastBtn = $("#togglePastBtn");
-    const countBadge = $("#countBadge");
-    const updatedAt = $("#updatedAt");
-    const subtitle = $("#subtitle");
-
-    $("#year").textContent = new Date().getFullYear();
+    document.getElementById("year").textContent = new Date().getFullYear();
 
     let allEvents = [];
     let showPast = false;
 
-    const MONTHS_PT = [
+    const MONTHS = [
       "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
       "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
     ];
-    const WEEKDAY_PT = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
-    function parseLocalDateTime(isoLocal) {
-      // "YYYY-MM-DDTHH:mm"
-      const [datePart, timePart = "00:00"] = isoLocal.split("T");
-      const [y, m, d] = datePart.split("-").map(Number);
-      const [hh, mm] = timePart.split(":").map(Number);
-      return new Date(y, m - 1, d, hh, mm, 0, 0);
+    const WEEKDAYS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+    function parseDateTime(value) {
+      const parts = value.split("T");
+      const date = parts[0].split("-");
+      const time = parts[1].split(":");
+
+      return new Date(
+        Number(date[0]),
+        Number(date[1]) - 1,
+        Number(date[2]),
+        Number(time[0]),
+        Number(time[1])
+      );
     }
 
-    function normalize(str) {
-      return (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    function normalize(text) {
+      return (text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
     }
 
-    function isPast(dt) {
-      return dt.getTime() < Date.now();
+    function isPast(date) {
+      return date.getTime() < Date.now();
     }
 
-    function pad2(n) { return String(n).padStart(2, "0"); }
+    function buildGoogleCalendarLink(event, start) {
+      const duration = event.durationMinutes || 90;
+      const end = new Date(start.getTime() + duration * 60000);
 
-    function monthKey(dt) {
-      return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}`;
-    }
-
-    function monthTitle(dt) {
-      return `${MONTHS_PT[dt.getMonth()]} ${dt.getFullYear()}`;
-    }
-
-    function buildGoogleCalendarLink(ev, dtStart) {
-      const durationMinutes = ev.durationMinutes ?? 90;
-      const dtEnd = new Date(dtStart.getTime() + durationMinutes * 60000);
-
-      const toGCal = (d) =>
-        `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}T${pad2(d.getHours())}${pad2(d.getMinutes())}00`;
+      function fmt(d) {
+        return (
+          d.getFullYear() +
+          String(d.getMonth() + 1).padStart(2, "0") +
+          String(d.getDate()).padStart(2, "0") +
+          "T" +
+          String(d.getHours()).padStart(2, "0") +
+          String(d.getMinutes()).padStart(2, "0") +
+          "00"
+        );
+      }
 
       const params = new URLSearchParams({
         action: "TEMPLATE",
-        text: ev.title || "Evento",
-        dates: `${toGCal(dtStart)}/${toGCal(dtEnd)}`,
-        details: ev.description || "",
-        location: ev.location || ""
+        text: event.title,
+        dates: fmt(start) + "/" + fmt(end),
+        details: event.description || "",
+        location: event.location || ""
       });
 
-      return `https://calendar.google.com/calendar/render?${params.toString()}`;
+      return "https://calendar.google.com/calendar/render?" + params.toString();
     }
 
-    function icon(name) {
-      // inline SVG simples (sem libs)
-      const icons = {
-        calendar: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v2h18V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm14 8H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10zm-4 4h-5v5h5v-5z"/></svg>`,
-        clock: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1a11 11 0 1 0 .001 22.001A11 11 0 0 0 12 1zm1 11.414 4.293 4.293-1.414 1.414L11 13V6h2v6.414z"/></svg>`,
-        pin: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>`,
-        info: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 17h2v-6h-2v6zm0-8h2V7h-2v2zm1-7C6.935 2 3 5.935 3 11s3.935 9 9 9 9-3.935 9-9-3.935-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"/></svg>`
-      };
-      return icons[name] || "";
+    function groupByMonth(events) {
+      const map = {};
+
+      events.forEach(function (ev) {
+        const key = ev.date.getFullYear() + "-" + ev.date.getMonth();
+        if (!map[key]) map[key] = [];
+        map[key].push(ev);
+      });
+
+      return map;
     }
 
-    function buildMonthCard(title, events) {
-      const card = document.createElement("section");
-      card.className = "month-card";
-
-      const head = document.createElement("div");
-      head.className = "month-head";
-      head.innerHTML = `
-        <div class="month-title">${title}</div>
-        <div class="month-count">${events.length} evento(s)</div>
-      `;
-
-      const list = document.createElement("div");
-      list.className = "month-events";
-
-      for (const ev of events) {
-        const dt = ev._dt;
-        const weekday = WEEKDAY_PT[dt.getDay()];
-        const day = pad2(dt.getDate());
-        const time = `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
-
-        const past = isPast(dt);
-        const gcal = buildGoogleCalendarLink(ev, dt);
-
-        const item = document.createElement("article");
-        item.className = "event-row" + (past ? " is-past" : "");
-
-        item.innerHTML = `
-          <div class="event-date">
-            <div class="event-day">${day}</div>
-            <div class="event-weekday">${weekday}</div>
-          </div>
-
-          <div class="event-main">
-            <div class="event-top">
-              <span class="pill">${(ev.type || "Evento").trim()}</span>
-              <h3 class="event-title">${ev.title || "Sem título"}</h3>
-            </div>
-
-            <div class="event-meta">
-              <span class="meta-chip">${icon("calendar")} <span>${weekday}, ${day}</span></span>
-              <span class="meta-chip">${icon("clock")} <span>${time}</span></span>
-              ${ev.location ? `<span class="meta-chip">${icon("pin")} <span>${ev.location}</span></span>` : ""}
-              ${ev.description ? `<span class="meta-chip">${icon("info")} <span>Detalhes</span></span>` : ""}
-            </div>
-
-            ${ev.description ? `<p class="event-desc">${ev.description}</p>` : ""}
-          </div>
-
-          <div class="event-actions">
-            ${ev.link ? `<a class="btn btn-ghost" href="${ev.link}" target="_blank" rel="noopener">Mais detalhes</a>` : ""}
-            <a class="btn" href="${gcal}" target="_blank" rel="noopener">Adicionar ao Google Agenda</a>
-          </div>
-        `;
-
-        list.appendChild(item);
-      }
-
-      card.appendChild(head);
-      card.appendChild(list);
-      return card;
-    }
-
-    function renderByMonth(list) {
+    function render(events) {
       monthsEl.innerHTML = "";
+      countBadge.textContent = events.length;
 
-      if (!list.length) {
+      if (events.length === 0) {
         statusEl.textContent = "Nenhum evento encontrado.";
-        statusEl.classList.remove("hidden");
-        countBadge.textContent = "0";
         return;
       }
 
-      statusEl.classList.add("hidden");
-      countBadge.textContent = String(list.length);
+      statusEl.textContent = "";
 
-      // agrupa por mês
-      const groups = new Map();
-      for (const ev of list) {
-        const key = monthKey(ev._dt);
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key).push(ev);
-      }
+      const grouped = groupByMonth(events);
 
-      // ordena grupos por chave (YYYY-MM)
-      const sortedKeys = Array.from(groups.keys()).sort();
+      Object.keys(grouped)
+        .sort()
+        .forEach(function (key) {
+          const monthEvents = grouped[key];
+          const refDate = monthEvents[0].date;
 
-      for (const key of sortedKeys) {
-        const evs = groups.get(key).sort((a,b) => a._dt - b._dt);
-        const title = monthTitle(evs[0]._dt);
-        monthsEl.appendChild(buildMonthCard(title, evs));
-      }
+          const monthCard = document.createElement("section");
+          monthCard.className = "month-card";
 
-      subtitle.textContent = showPast ? "Por mês • incluindo passados" : "Por mês • próximos encontros e eventos";
+          monthCard.innerHTML = `
+            <div class="month-head">
+              <span class="month-title">
+                ${MONTHS[refDate.getMonth()]} ${refDate.getFullYear()}
+              </span>
+              <span class="month-count">
+                ${monthEvents.length} evento(s)
+              </span>
+            </div>
+            <div class="month-events"></div>
+          `;
+
+          const list = monthCard.querySelector(".month-events");
+
+          monthEvents.forEach(function (ev) {
+            const day = String(ev.date.getDate()).padStart(2, "0");
+            const weekday = WEEKDAYS[ev.date.getDay()];
+            const time =
+              String(ev.date.getHours()).padStart(2, "0") +
+              ":" +
+              String(ev.date.getMinutes()).padStart(2, "0");
+
+            const eventEl = document.createElement("article");
+            eventEl.className = "event-row" + (isPast(ev.date) ? " is-past" : "");
+
+            eventEl.innerHTML = `
+              <div class="event-date">
+                <div class="event-day">${day}</div>
+                <div class="event-weekday">${weekday}</div>
+              </div>
+
+              <div class="event-main">
+                <div class="event-top">
+                  <span class="pill">${ev.type}</span>
+                  <h3 class="event-title">${ev.title}</h3>
+                </div>
+
+                <div class="event-meta">
+                  ⏰ ${time}
+                  ${ev.location ? " • 📍 " + ev.location : ""}
+                </div>
+
+                ${ev.description ? `<p class="event-desc">${ev.description}</p>` : ""}
+              </div>
+
+              <div class="event-side">
+                <div class="event-thumb">
+                  ${
+                    ev.image
+                      ? `<img src="${ev.image}" alt="Arte do evento" />`
+                      : `<span>SEM<br>ARTE</span>`
+                  }
+                </div>
+
+                <a
+                  class="btn"
+                  href="${buildGoogleCalendarLink(ev, ev.date)}"
+                  target="_blank"
+                >
+                  Google Agenda
+                </a>
+              </div>
+            `;
+
+            list.appendChild(eventEl);
+          });
+
+          monthsEl.appendChild(monthCard);
+        });
+
+      subtitleEl.textContent = showPast
+        ? "Incluindo eventos passados"
+        : "Somente próximos eventos";
     }
 
     function applyFilters() {
-      const q = normalize(searchInput.value);
-      const now = Date.now();
+      const query = normalize(searchInput.value);
 
-      let list = allEvents
-        .map(ev => ({ ...ev, _dt: parseLocalDateTime(ev.datetime) }))
-        .filter(ev => showPast ? true : ev._dt.getTime() >= now - 60000)
-        .sort((a,b) => a._dt - b._dt);
+      let filtered = allEvents.filter(function (ev) {
+        if (!showPast && isPast(ev.date)) return false;
 
-      if (q) {
-        list = list.filter(ev => {
-          const hay = normalize([ev.title, ev.location, ev.type, ev.description].filter(Boolean).join(" "));
-          return hay.includes(q);
-        });
-      }
+        if (!query) return true;
 
-      renderByMonth(list);
+        const text = normalize(
+          ev.title + " " + ev.type + " " + (ev.location || "") + " " + (ev.description || "")
+        );
+
+        return text.includes(query);
+      });
+
+      render(filtered);
     }
 
-    async function load() {
-      try {
-        statusEl.textContent = "Carregando agenda…";
-        statusEl.classList.remove("hidden");
-
-        const res = await fetch("./events.json", { cache: "no-store" });
-        if (!res.ok) throw new Error("Não foi possível carregar events.json");
-
-        const data = await res.json();
-        allEvents = Array.isArray(data.events) ? data.events : [];
-
-        updatedAt.textContent = data.updatedAt ? `Atualizado em ${data.updatedAt}` : "Atualização não informada";
-
-        applyFilters();
-      } catch (err) {
-        statusEl.textContent = "Erro ao carregar a agenda. Verifique o arquivo events.json.";
-        statusEl.classList.remove("hidden");
-        console.error(err);
-      }
-    }
-
-    togglePastBtn.addEventListener("click", () => {
+    togglePastBtn.addEventListener("click", function () {
       showPast = !showPast;
       togglePastBtn.textContent = showPast ? "Ocultar passados" : "Mostrar passados";
       applyFilters();
@@ -279,7 +267,25 @@
 
     searchInput.addEventListener("input", applyFilters);
 
-    load();
+    fetch("./events.json", { cache: "no-store" })
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        updatedAtEl.textContent = data.updatedAt
+          ? "Atualizado em " + data.updatedAt
+          : "";
+
+        allEvents = data.events.map(function (ev) {
+          ev.date = parseDateTime(ev.datetime);
+          return ev;
+        });
+
+        applyFilters();
+      })
+      .catch(function () {
+        statusEl.textContent = "Erro ao carregar events.json";
+      });
   </script>
 </body>
 </html>
