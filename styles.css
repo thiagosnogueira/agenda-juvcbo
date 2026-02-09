@@ -407,3 +407,55 @@ body{
     height: 180px;
   }
 }
+
+/* ===== LOGO PRINCIPAL DO HEADER ===== */
+
+.brand{
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* área da logo */
+.brand-logo{
+  height: 64px;          /* controla o tamanho geral */
+  max-width: 220px;      /* impede estourar horizontalmente */
+  flex-shrink: 0;        /* não deixa encolher */
+  display: flex;
+  align-items: center;
+}
+
+/* imagem da logo */
+.brand-logo img{
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* texto ao lado da logo */
+.brand-text h1{
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.brand-text p{
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* mobile: logo um pouco menor */
+@media (max-width: 820px){
+  .brand-logo{
+    height: 52px;
+    max-width: 180px;
+  }
+
+  .brand-text h1{
+    font-size: 1.3rem;
+  }
+}
+
