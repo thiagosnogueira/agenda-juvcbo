@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agenda | Grupo de Jovens</title>
-
   <meta name="description" content="Agenda oficial do Grupo de Jovens" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -17,7 +16,7 @@
       <div class="logo">✦</div>
       <div class="brand-text">
         <h1>Agenda do Grupo de Jovens</h1>
-        <p id="subtitle">Encontros organizados por mês</p>
+        <p id="subtitle">Incluindo eventos passados</p>
       </div>
     </div>
 
@@ -28,10 +27,7 @@
         type="search"
         placeholder="Buscar por título, local ou tipo..."
       />
-
-      <button id="togglePastBtn" class="btn">
-        Mostrar passados
-      </button>
+      <button id="togglePastBtn" class="btn">Ocultar passados</button>
     </div>
   </header>
 
@@ -71,7 +67,7 @@
     document.getElementById("year").textContent = new Date().getFullYear();
 
     let allEvents = [];
-    let showPast = false;
+    let showPast = true; // ✅ agora começa mostrando TUDO (inclui janeiro)
 
     const MONTHS = [
       "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -82,15 +78,15 @@
 
     function parseDateTime(value) {
       const parts = value.split("T");
-      const date = parts[0].split("-");
-      const time = parts[1].split(":");
+      const d = parts[0].split("-");
+      const t = (parts[1] || "00:00").split(":");
 
       return new Date(
-        Number(date[0]),
-        Number(date[1]) - 1,
-        Number(date[2]),
-        Number(time[0]),
-        Number(time[1])
+        Number(d[0]),
+        Number(d[1]) - 1,
+        Number(d[2]),
+        Number(t[0]),
+        Number(t[1])
       );
     }
 
@@ -105,38 +101,14 @@
       return date.getTime() < Date.now();
     }
 
-    function buildGoogleCalendarLink(event, start) {
-      const duration = event.durationMinutes || 90;
-      const end = new Date(start.getTime() + duration * 60000);
-
-      function fmt(d) {
-        return (
-          d.getFullYear() +
-          String(d.getMonth() + 1).padStart(2, "0") +
-          String(d.getDate()).padStart(2, "0") +
-          "T" +
-          String(d.getHours()).padStart(2, "0") +
-          String(d.getMinutes()).padStart(2, "0") +
-          "00"
-        );
-      }
-
-      const params = new URLSearchParams({
-        action: "TEMPLATE",
-        text: event.title,
-        dates: fmt(start) + "/" + fmt(end),
-        details: event.description || "",
-        location: event.location || ""
-      });
-
-      return "https://calendar.google.com/calendar/render?" + params.toString();
-    }
-
     function groupByMonth(events) {
       const map = {};
 
       events.forEach(function (ev) {
-        const key = ev.date.getFullYear() + "-" + ev.date.getMonth();
+        const y = ev.date.getFullYear();
+        const m = String(ev.date.getMonth() + 1).padStart(2, "0"); // ✅ 01..12
+        const key = y + "-" + m;
+
         if (!map[key]) map[key] = [];
         map[key].push(ev);
       });
@@ -146,7 +118,7 @@
 
     function render(events) {
       monthsEl.innerHTML = "";
-      countBadge.textContent = events.length;
+      countBadge.textContent = String(events.length);
 
       if (events.length === 0) {
         statusEl.textContent = "Nenhum evento encontrado.";
@@ -158,9 +130,12 @@
       const grouped = groupByMonth(events);
 
       Object.keys(grouped)
-        .sort()
+        .sort() // com YYYY-MM ordena certinho
         .forEach(function (key) {
-          const monthEvents = grouped[key];
+          const monthEvents = grouped[key].slice().sort(function (a, b) {
+            return a.date.getTime() - b.date.getTime();
+          });
+
           const refDate = monthEvents[0].date;
 
           const monthCard = document.createElement("section");
@@ -168,12 +143,8 @@
 
           monthCard.innerHTML = `
             <div class="month-head">
-              <span class="month-title">
-                ${MONTHS[refDate.getMonth()]} ${refDate.getFullYear()}
-              </span>
-              <span class="month-count">
-                ${monthEvents.length} evento(s)
-              </span>
+              <span class="month-title">${MONTHS[refDate.getMonth()]} ${refDate.getFullYear()}</span>
+              <span class="month-count">${monthEvents.length} evento(s)</span>
             </div>
             <div class="month-events"></div>
           `;
@@ -191,6 +162,10 @@
             const eventEl = document.createElement("article");
             eventEl.className = "event-row" + (isPast(ev.date) ? " is-past" : "");
 
+            const thumb = ev.image
+              ? `<img class="event-thumb-img" src="${ev.image}" alt="Arte do evento: ${ev.title}" loading="lazy" />`
+              : `<div class="event-thumb-ph">SEM<br>ARTE</div>`;
+
             eventEl.innerHTML = `
               <div class="event-date">
                 <div class="event-day">${day}</div>
@@ -199,13 +174,15 @@
 
               <div class="event-main">
                 <div class="event-top">
-                  <span class="pill">${ev.type}</span>
-                  <h3 class="event-title">${ev.title}</h3>
+                  <span class="pill">${ev.type || "Evento"}</span>
+                  <h3 class="event-title">${ev.title || "Sem título"}</h3>
                 </div>
 
                 <div class="event-meta">
-                  ⏰ ${time}
-                  ${ev.location ? " • 📍 " + ev.location : ""}
+                  <span class="meta-chip">📅 <span>${weekday}</span></span>
+                  <span class="meta-chip">⏰ <span>${time}</span></span>
+                  ${ev.location ? `<span class="meta-chip">📍 <span>${ev.location}</span></span>` : ""}
+                  ${ev.description ? `<span class="meta-chip">ℹ️ <span>Detalhes</span></span>` : ""}
                 </div>
 
                 ${ev.description ? `<p class="event-desc">${ev.description}</p>` : ""}
@@ -213,20 +190,10 @@
 
               <div class="event-side">
                 <div class="event-thumb">
-                  ${
-                    ev.image
-                      ? `<img src="${ev.image}" alt="Arte do evento" />`
-                      : `<span>SEM<br>ARTE</span>`
-                  }
+                  ${thumb}
                 </div>
 
-                <a
-                  class="btn"
-                  href="${buildGoogleCalendarLink(ev, ev.date)}"
-                  target="_blank"
-                >
-                  Google Agenda
-                </a>
+                ${ev.link ? `<a class="btn btn-ghost" href="${ev.link}" target="_blank" rel="noopener">Mais detalhes</a>` : ""}
               </div>
             `;
 
@@ -235,28 +202,35 @@
 
           monthsEl.appendChild(monthCard);
         });
-
-      subtitleEl.textContent = showPast
-        ? "Incluindo eventos passados"
-        : "Somente próximos eventos";
     }
 
     function applyFilters() {
       const query = normalize(searchInput.value);
 
-      let filtered = allEvents.filter(function (ev) {
-        if (!showPast && isPast(ev.date)) return false;
+      const filtered = allEvents
+        .filter(function (ev) {
+          if (!showPast && isPast(ev.date)) return false;
 
-        if (!query) return true;
+          if (!query) return true;
 
-        const text = normalize(
-          ev.title + " " + ev.type + " " + (ev.location || "") + " " + (ev.description || "")
-        );
+          const text = normalize(
+            (ev.title || "") + " " +
+            (ev.type || "") + " " +
+            (ev.location || "") + " " +
+            (ev.description || "")
+          );
 
-        return text.includes(query);
-      });
+          return text.includes(query);
+        })
+        .sort(function (a, b) {
+          return a.date.getTime() - b.date.getTime();
+        });
 
       render(filtered);
+
+      subtitleEl.textContent = showPast
+        ? "Incluindo eventos passados"
+        : "Somente próximos eventos";
     }
 
     togglePastBtn.addEventListener("click", function () {
@@ -268,17 +242,12 @@
     searchInput.addEventListener("input", applyFilters);
 
     fetch("./events.json", { cache: "no-store" })
-      .then(function (res) {
-        return res.json();
-      })
+      .then(function (res) { return res.json(); })
       .then(function (data) {
-        updatedAtEl.textContent = data.updatedAt
-          ? "Atualizado em " + data.updatedAt
-          : "";
+        updatedAtEl.textContent = data.updatedAt ? "Atualizado em " + data.updatedAt : "";
 
-        allEvents = data.events.map(function (ev) {
-          ev.date = parseDateTime(ev.datetime);
-          return ev;
+        allEvents = (data.events || []).map(function (ev) {
+          return Object.assign({}, ev, { date: parseDateTime(ev.datetime) });
         });
 
         applyFilters();
