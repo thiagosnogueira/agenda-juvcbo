@@ -16,7 +16,8 @@
       "datetime": "2026-01-24T19:30",
       "location": "Praia de Piratininga",
       "description": "!!!CANCELADO!!!",
-      "durationMinutes": 90
+      "durationMinutes": 90,
+      "link": "https://www.instagram.com/p/DTs3y2pDrQ5/",
       "image": "assets/luau.jpg"
     },
     {
@@ -25,7 +26,8 @@
       "datetime": "2026-02-21T14:00",
       "location": "CBO",
       "description": "A piscina estará liberada. Leve boardgames e cardgames.",
-      "durationMinutes": 150
+      "durationMinutes": 150,
+      "link": "https://www.instagram.com/p/DUgVNE7Dqy8/",
       "image": "assets/tarde-de-jogos-fev.jpg"
     },
     {
